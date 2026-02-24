@@ -1430,7 +1430,6 @@
                             <!-- Timeout: HTTP / JSON query / Keyword / Ping / RabbitMQ / SNMP / Websocket Upgrade only -->
                             <div
                                 v-if="
-                                    monitor.type === 'dns' ||
                                     monitor.type === 'http' ||
                                     monitor.type === 'json-query' ||
                                     monitor.type === 'keyword' ||
