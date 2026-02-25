@@ -28,6 +28,7 @@ async function timedExecution(fn) {
 
 class StremioAddonMonitor extends MonitorType {
     static type = "stremio";
+    static allowCustomStatus = true;
     static name = "Stremio Addon"; static defaultPort = 80;
 
     /**
