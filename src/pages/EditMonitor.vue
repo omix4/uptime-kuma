@@ -230,7 +230,7 @@
                                 </div>
                                 
                                 <div v-if="stremioSearchResults.length > 0" class="mt-3">
-                                    <div class="list-group" style="max-height: 300px; overflow-y: auto;">
+                                    <div class="list-group" style="max-height: 400px; overflow-y: auto;">
                                         <button
                                             v-for="addon in stremioSearchResults"
                                             :key="addon.id"
@@ -241,15 +241,22 @@
                                                 v-if="addon.manifest && addon.manifest.logo" 
                                                 :src="addon.manifest.logo" 
                                                 :alt="addon.name"
-                                                class="me-3"
+                                                class="me-3 flex-shrink-0"
                                                 style="width: 48px; height: 48px; object-fit: contain;"
                                             >
-                                            <div class="flex-grow-1">
-                                                <div class="fw-bold">{{ addon.name }}</div>
-                                                <small class="text-muted text-truncate d-block">{{ addon.description }}</small>
-                                                <small class="text-muted">{{ addon.manifestUrl }}</small>
+                                            <div class="flex-grow-1 min-width-0">
+                                                <div class="fw-bold text-truncate">{{ addon.name }}</div>
+                                                <small class="text-muted d-block" style="word-break: break-word;">{{ truncateWords(addon.description, 30) }}</small>
+                                                <small class="text-muted text-truncate d-block">{{ addon.manifestUrl }}</small>
                                             </div>
-                                            <span class="badge bg-primary rounded-pill ms-2">{{ addon.stars }} ⭐</span>
+                                            <span class="badge bg-primary rounded-pill ms-2 flex-shrink-0">{{ addon.stars }} ⭐</span>
+                                        </button>
+                                    </div>
+                                    
+                                    <div v-if="stremioSearchHasMore" class="text-center mt-2">
+                                        <button class="btn btn-outline-primary btn-sm" :disabled="stremioSearchLoading" @click="loadMoreStremioAddons">
+                                            <span v-if="stremioSearchLoading" class="spinner-border spinner-border-sm me-1"></span>
+                                            {{ stremioSearchLoading ? 'Loading...' : 'Load More' }}
                                         </button>
                                     </div>
                                 </div>
@@ -3009,6 +3016,8 @@ export default {
             stremioSearchLoading: false,
             stremioSearchError: null,
             stremioSearchResults: [],
+            stremioSearchPage: 1,
+            stremioSearchHasMore: false,
         };
     },
 
@@ -3605,6 +3614,16 @@ message HealthCheckResponse {
     },
     methods: {
         /**
+         * Truncate text to a specified number of words
+         */
+        truncateWords(text, maxWords) {
+            if (!text) return "";
+            const words = text.split(/\s+/);
+            if (words.length <= maxWords) return text;
+            return words.slice(0, maxWords).join(" ") + "…";
+        },
+
+        /**
          * Search for Stremio addons
          */
         async searchStremioAddons() {
@@ -3616,17 +3635,42 @@ message HealthCheckResponse {
             this.stremioSearchLoading = true;
             this.stremioSearchError = null;
             this.stremioSearchResults = [];
+            this.stremioSearchPage = 1;
             
-            this.$root.getSocket().emit("stremioSearchAddons", this.stremioSearchQuery, (res) => {
+            this.$root.getSocket().emit("stremioSearchAddons", this.stremioSearchQuery, 1, (res) => {
                 this.stremioSearchLoading = false;
                 
                 if (res.ok) {
                     this.stremioSearchResults = res.data.addons || [];
+                    this.stremioSearchHasMore = res.data.pagination?.hasNextPage || false;
                     if (this.stremioSearchResults.length === 0) {
                         this.stremioSearchError = "No addons found";
                     }
                 } else {
                     this.stremioSearchError = res.msg || "Failed to search addons";
+                }
+            });
+        },
+        
+        /**
+         * Load more Stremio addons (pagination)
+         */
+        loadMoreStremioAddons() {
+            if (this.stremioSearchLoading || !this.stremioSearchHasMore) return;
+            
+            this.stremioSearchLoading = true;
+            const nextPage = this.stremioSearchPage + 1;
+            
+            this.$root.getSocket().emit("stremioSearchAddons", this.stremioSearchQuery, nextPage, (res) => {
+                this.stremioSearchLoading = false;
+                
+                if (res.ok) {
+                    this.stremioSearchResults = [
+                        ...this.stremioSearchResults,
+                        ...(res.data.addons || [])
+                    ];
+                    this.stremioSearchPage = nextPage;
+                    this.stremioSearchHasMore = res.data.pagination?.hasNextPage || false;
                 }
             });
         },

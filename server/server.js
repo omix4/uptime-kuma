@@ -1059,15 +1059,22 @@ let needSetup = false;
         });
 
         // Stremio Addons Search
-        socket.on("stremioSearchAddons", async (searchQuery, callback) => {
+        socket.on("stremioSearchAddons", async (searchQuery, page, callback) => {
             try {
                 checkLogin(socket);
+                
+                // Default to page 1 if not specified
+                if (typeof page === 'function') {
+                    callback = page;
+                    page = 1;
+                }
                 
                 const axios = require("axios");
                 const url = new URL("https://stremio-addons.net/api/v0/addons");
                 
                 if (searchQuery) url.searchParams.set("search", searchQuery);
                 url.searchParams.set("limit", "20");
+                url.searchParams.set("page", page.toString());
                 
                 const res = await axios.get(url.toString(), {
                     headers: {
