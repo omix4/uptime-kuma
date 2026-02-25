@@ -4,7 +4,7 @@
  */
 
 const axios = require("axios");
-const { log, UP, DOWN } = require("../src/util");
+const { UP, DOWN, log } = require("../../src/util");
 
 // Cinemeta base URLs for catalog fetching
 const CINEMETA_MOVIE_URL = "https://v3-cinemeta.strem.io/catalog/movie/top.json";
