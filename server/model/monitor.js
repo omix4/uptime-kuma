@@ -811,6 +811,10 @@ class Monitor extends BeanModel {
                     } else {
                         throw new Error("Server not found on Steam");
                     }
+                } else if (this.type === "stremio") {
+                    const { StremioAddonMonitor } = require("../monitor-types/stremio");
+                    const stremioMonitor = new StremioAddonMonitor();
+                    await stremioMonitor.check(this, bean, server);
                 } else if (this.type === "docker") {
                     log.debug("monitor", `[${this.name}] Prepare Options for Axios`);
 
@@ -1000,8 +1004,11 @@ class Monitor extends BeanModel {
             if (isImportant) {
                 bean.important = true;
 
-                if (Monitor.isImportantForNotification(isFirstBeat, previousBeat?.status, bean.status)) {
-                    log.debug("monitor", `[${this.name}] sendNotification`);
+                // Stremio addons always send notifications (like push)
+                const isStremio = this.type === "stremio";
+                
+                if (isStremio || Monitor.isImportantForNotification(isFirstBeat, previousBeat?.status, bean.status)) {
+                    log.debug("monitor", `[${this.name}] sendNotification${isStremio ? " (stremio always notify)" : ""}`);
                     await Monitor.sendNotification(isFirstBeat, this, bean);
                 } else {
                     log.debug(
@@ -1511,6 +1518,9 @@ class Monitor extends BeanModel {
                 .utc(heartbeatJSON["time"])
                 .tz(heartbeatJSON["timezone"])
                 .format(SQL_DATETIME_FORMAT);
+            
+            // Add monitor type for notification providers
+            heartbeatJSON["monitorType"] = monitor.type;
 
             // Calculate downtime tracking information when service comes back up
             // This makes downtime information available to all notification providers

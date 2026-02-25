@@ -110,6 +110,11 @@
                                             {{ $t("Steam Game Server") }}
                                         </option>
                                     </optgroup>
+
+                                    <!-- Stremio Addons -->
+                                    <optgroup :label="$t('Stremio')">
+                                        <option value="stremio">{{ $t("Stremio Addon") }}</option>
+                                    </optgroup>
                                 </select>
                                 <i18n-t
                                     v-if="monitor.type === 'rabbitmq'"
@@ -185,20 +190,69 @@
                                     monitor.type === 'http' ||
                                     monitor.type === 'keyword' ||
                                     monitor.type === 'json-query' ||
-                                    monitor.type === 'real-browser'
+                                    monitor.type === 'real-browser' ||
+                                    monitor.type === 'stremio'
                                 "
                                 class="my-3"
                             >
-                                <label for="url" class="form-label">{{ $t("URL") }}</label>
+                                <label for="url" class="form-label">{{ monitor.type === 'stremio' ? $t('Addon Manifest URL') : $t('URL') }}</label>
                                 <input
                                     id="url"
                                     v-model="monitor.url"
                                     type="url"
                                     class="form-control"
                                     :pattern="monitor.type !== 'websocket-upgrade' ? 'https?://.+' : 'wss?://.+'"
+                                    :placeholder="monitor.type === 'stremio' ? 'https://comet.elfhosted.com/manifest.json' : ''"
                                     required
                                     data-testid="url-input"
                                 />
+                            </div>
+
+                            <!-- Stremio Addon Search -->
+                            <div v-if="monitor.type === 'stremio'" class="my-3">
+                                <label class="form-label">{{ $t('Search Addons') }}</label>
+                                <div class="input-group">
+                                    <input
+                                        v-model="stremioSearchQuery"
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Search addons..."
+                                        @keyup.enter="searchStremioAddons"
+                                    />
+                                    <button class="btn btn-outline-secondary" type="button" :disabled="stremioSearchLoading" @click="searchStremioAddons">
+                                        <span v-if="stremioSearchLoading" class="spinner-border spinner-border-sm me-1"></span>
+                                        {{ stremioSearchLoading ? 'Searching...' : $t('Search') }}
+                                    </button>
+                                </div>
+                                
+                                <div v-if="stremioSearchError" class="mt-2 alert alert-warning">
+                                    {{ stremioSearchError }}
+                                </div>
+                                
+                                <div v-if="stremioSearchResults.length > 0" class="mt-3">
+                                    <div class="list-group" style="max-height: 300px; overflow-y: auto;">
+                                        <button
+                                            v-for="addon in stremioSearchResults"
+                                            :key="addon.id"
+                                            class="list-group-item list-group-item-action d-flex align-items-center"
+                                            @click="selectStremioAddon(addon)"
+                                        >
+                                            <img 
+                                                v-if="addon.manifest && addon.manifest.logo" 
+                                                :src="addon.manifest.logo" 
+                                                :alt="addon.name"
+                                                class="me-3"
+                                                style="width: 48px; height: 48px; object-fit: contain;"
+                                            >
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold">{{ addon.name }}</div>
+                                                <small class="text-muted text-truncate d-block">{{ addon.description }}</small>
+                                                <small class="text-muted">{{ addon.manifestUrl }}</small>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill ms-2">{{ addon.stars }} ⭐</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Websocket Subprotocol Docs: https://www.iana.org/assignments/websocket/websocket.xml#subprotocol-name -->
@@ -2950,6 +3004,11 @@ export default {
                 confirmed: false,
                 editedValue: false,
             },
+            // Stremio Addon Search
+            stremioSearchQuery: "",
+            stremioSearchLoading: false,
+            stremioSearchError: null,
+            stremioSearchResults: [],
         };
     },
 
@@ -3545,6 +3604,45 @@ message HealthCheckResponse {
         this.kafkaSaslMechanismOptions = kafkaSaslMechanismOptions;
     },
     methods: {
+        /**
+         * Search for Stremio addons
+         */
+        async searchStremioAddons() {
+            if (!this.stremioSearchQuery || this.stremioSearchQuery.trim().length === 0) {
+                this.stremioSearchError = "Please enter a search term";
+                return;
+            }
+            
+            this.stremioSearchLoading = true;
+            this.stremioSearchError = null;
+            this.stremioSearchResults = [];
+            
+            this.$root.getSocket().emit("stremioSearchAddons", this.stremioSearchQuery, (res) => {
+                this.stremioSearchLoading = false;
+                
+                if (res.ok) {
+                    this.stremioSearchResults = res.data.addons || [];
+                    if (this.stremioSearchResults.length === 0) {
+                        this.stremioSearchError = "No addons found";
+                    }
+                } else {
+                    this.stremioSearchError = res.msg || "Failed to search addons";
+                }
+            });
+        },
+        
+        /**
+         * Select a Stremio addon from search results
+         */
+        selectStremioAddon(addon) {
+            if (addon.manifestUrl) {
+                this.monitor.url = addon.manifestUrl;
+                if (!this.monitor.name || this.monitor.name === "") {
+                    this.monitor.name = addon.name;
+                }
+            }
+        },
+
         /**
          * Initialize the edit monitor form
          * @returns {void}

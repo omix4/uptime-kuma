@@ -121,40 +121,121 @@ class Discord extends NotificationProvider {
             if (heartbeatJSON["status"] === DOWN) {
                 const wentOfflineTimestamp = Math.floor(new Date(heartbeatJSON["time"]).getTime() / 1000);
 
+                // Check if this is a Stremio addon monitor
+                const isStremio = heartbeatJSON["monitorType"] === "stremio";
+                
+                // Parse response data
+                let responseData = null;
+                if (heartbeatJSON["response"]) {
+                    try {
+                        responseData = typeof heartbeatJSON["response"] === 'string' 
+                            ? JSON.parse(heartbeatJSON["response"]) 
+                            : heartbeatJSON["response"];
+                    } catch (e) {
+                        responseData = null;
+                    }
+                }
+
+                let embedFields = [];
+                
+                // Build Stremio embed with detailed fields
+                if (isStremio && responseData) {
+                    const movieStreams = responseData.movie?.streams || 0;
+                    const seriesStreams = responseData.series?.streams || 0;
+                    const totalStreams = responseData.totalStreams || 0;
+                    
+                    embedFields = [
+                        {
+                            name: "📋 Manifest",
+                            value: responseData.addon?.url || monitorJSON["url"] || "N/A",
+                            inline: false
+                        },
+                        {
+                            name: "🎬 Movie Search",
+                            value: responseData.movie ? `**${responseData.movie.name}**\n${responseData.movie.id}` : "N/A",
+                            inline: true
+                        },
+                        {
+                            name: "✅ Movie",
+                            value: movieStreams > 0 ? `✓ Valid (${movieStreams})` : "✗ Failed",
+                            inline: true
+                        },
+                        {
+                            name: "📺 Series Search",
+                            value: responseData.series ? `**${responseData.series.name}**\n${responseData.series.id}` : "N/A",
+                            inline: true
+                        },
+                        {
+                            name: "✅ Series",
+                            value: seriesStreams > 0 ? `✓ Valid (${seriesStreams})` : "✗ Failed",
+                            inline: true
+                        },
+                        {
+                            name: "🔥 Total Streams",
+                            value: `**${totalStreams}**`,
+                            inline: true
+                        },
+                        {
+                            name: "⏱️ Latency",
+                            value: heartbeatJSON["ping"] ? `${heartbeatJSON["ping"]} ms` : "N/A",
+                            inline: true
+                        },
+                        {
+                            name: "🕐 Tested At",
+                            value: heartbeatJSON["localDateTime"] || new Date(heartbeatJSON["time"]).toLocaleString(),
+                            inline: true
+                        }
+                    ];
+                } else {
+                    // Default non-Stremio embed
+                    embedFields = [
+                        {
+                            name: "Service Name",
+                            value: monitorJSON["name"],
+                        },
+                        ...(!notification.disableUrl && addess
+                            ? [
+                                  {
+                                      name: monitorJSON["type"] === "push" ? "Service Type" : "Service URL",
+                                      value: addess,
+                                  },
+                              ]
+                            : []),
+                        {
+                            name: "Went Offline",
+                            value: `<t:${wentOfflineTimestamp}:F>`,
+                        },
+                        {
+                            name: `Time (${heartbeatJSON["timezone"]})`,
+                            value: heartbeatJSON["localDateTime"],
+                        },
+                        {
+                            name: "Error",
+                            value: heartbeatJSON["msg"] == null ? "N/A" : heartbeatJSON["msg"],
+                        },
+                    ];
+                }
+
+                // Determine color and title
+                let embedColor = 16711680; // Red
+                let embedTitle = "❌ " + monitorJSON["name"] + " is DOWN";
+                
+                if (isStremio && responseData) {
+                    const totalStreams = responseData.totalStreams || 0;
+                    embedColor = totalStreams > 0 ? 65280 : 16711680; // Green if streams, red if not
+                    embedTitle = totalStreams > 0 
+                        ? `✅ ${monitorJSON["name"]} - ${totalStreams} Streams` 
+                        : `❌ ${monitorJSON["name"]} - No Streams`;
+                }
+
                 let discorddowndata = {
                     username: discordDisplayName,
                     embeds: [
                         {
-                            title: "❌ Your service " + monitorJSON["name"] + " went down. ❌",
-                            color: 16711680,
+                            title: embedTitle,
+                            color: embedColor,
                             timestamp: heartbeatJSON["time"],
-                            fields: [
-                                {
-                                    name: "Service Name",
-                                    value: monitorJSON["name"],
-                                },
-                                ...(!notification.disableUrl && addess
-                                    ? [
-                                          {
-                                              name: monitorJSON["type"] === "push" ? "Service Type" : "Service URL",
-                                              value: addess,
-                                          },
-                                      ]
-                                    : []),
-                                {
-                                    name: "Went Offline",
-                                    // F for full date/time
-                                    value: `<t:${wentOfflineTimestamp}:F>`,
-                                },
-                                {
-                                    name: `Time (${heartbeatJSON["timezone"]})`,
-                                    value: heartbeatJSON["localDateTime"],
-                                },
-                                {
-                                    name: "Error",
-                                    value: heartbeatJSON["msg"] == null ? "N/A" : heartbeatJSON["msg"],
-                                },
-                            ],
+                            fields: embedFields,
                         },
                     ],
                 };
@@ -182,57 +263,114 @@ class Discord extends NotificationProvider {
                     downtimeDuration = this.formatDuration(backOnlineTimestamp - wentOfflineTimestamp);
                 }
 
+                // Check if this is a Stremio addon monitor
+                const isStremio = heartbeatJSON["monitorType"] === "stremio";
+                
+                // Parse response data
+                let responseData = null;
+                if (heartbeatJSON["response"]) {
+                    try {
+                        responseData = typeof heartbeatJSON["response"] === 'string' 
+                            ? JSON.parse(heartbeatJSON["response"]) 
+                            : heartbeatJSON["response"];
+                    } catch (e) {
+                        responseData = null;
+                    }
+                }
+
+                let embedFields = [];
+                let embedTitle = "✅ Your service " + monitorJSON["name"] + " is up! ✅";
+                let embedColor = 65280; // Green
+                
+                // Build Stremio embed with detailed fields
+                if (isStremio && responseData) {
+                    const movieStreams = responseData.movie?.streams || 0;
+                    const seriesStreams = responseData.series?.streams || 0;
+                    const totalStreams = responseData.totalStreams || 0;
+                    
+                    embedFields = [
+                        {
+                            name: "📋 Manifest",
+                            value: responseData.addon?.url || monitorJSON["url"] || "N/A",
+                            inline: false
+                        },
+                        {
+                            name: "🎬 Movie",
+                            value: responseData.movie ? `**${responseData.movie.name}**\n${movieStreams} streams` : "N/A",
+                            inline: true
+                        },
+                        {
+                            name: "📺 Series",
+                            value: responseData.series ? `**${responseData.series.name}**\n${seriesStreams} streams` : "N/A",
+                            inline: true
+                        },
+                        {
+                            name: "🔥 Total Streams",
+                            value: `**${totalStreams}**`,
+                            inline: true
+                        },
+                        {
+                            name: "⏱️ Latency",
+                            value: heartbeatJSON["ping"] ? `${heartbeatJSON["ping"]} ms` : "N/A",
+                            inline: true
+                        }
+                    ];
+                    
+                    embedTitle = `✅ ${monitorJSON["name"]} - ${totalStreams} Streams Found`;
+                } else {
+                    // Default non-Stremio embed
+                    embedFields = [
+                        {
+                            name: "Service Name",
+                            value: monitorJSON["name"],
+                        },
+                        ...(!notification.disableUrl && addess
+                            ? [
+                                  {
+                                      name: monitorJSON["type"] === "push" ? "Service Type" : "Service URL",
+                                      value: addess,
+                                  },
+                              ]
+                            : []),
+                        ...(wentOfflineTimestamp
+                            ? [
+                                  {
+                                      name: "Went Offline",
+                                      value: `<t:${wentOfflineTimestamp}:F>`,
+                                  },
+                              ]
+                            : []),
+                        ...(downtimeDuration
+                            ? [
+                                  {
+                                      name: "Downtime Duration",
+                                      value: downtimeDuration,
+                                  },
+                              ]
+                            : []),
+                        {
+                            name: `Time (${heartbeatJSON["timezone"]})`,
+                            value: heartbeatJSON["localDateTime"],
+                        },
+                        ...(heartbeatJSON["ping"] != null
+                            ? [
+                                  {
+                                      name: "Ping",
+                                      value: heartbeatJSON["ping"] + " ms",
+                                  },
+                              ]
+                            : []),
+                    ];
+                }
+
                 let discordupdata = {
                     username: discordDisplayName,
                     embeds: [
                         {
-                            title: "✅ Your service " + monitorJSON["name"] + " is up! ✅",
-                            color: 65280,
+                            title: embedTitle,
+                            color: embedColor,
                             timestamp: heartbeatJSON["time"],
-                            fields: [
-                                {
-                                    name: "Service Name",
-                                    value: monitorJSON["name"],
-                                },
-                                ...(!notification.disableUrl && addess
-                                    ? [
-                                          {
-                                              name: monitorJSON["type"] === "push" ? "Service Type" : "Service URL",
-                                              value: addess,
-                                          },
-                                      ]
-                                    : []),
-                                ...(wentOfflineTimestamp
-                                    ? [
-                                          {
-                                              name: "Went Offline",
-                                              // F for full date/time
-                                              value: `<t:${wentOfflineTimestamp}:F>`,
-                                          },
-                                      ]
-                                    : []),
-                                ...(downtimeDuration
-                                    ? [
-                                          {
-                                              name: "Downtime Duration",
-                                              value: downtimeDuration,
-                                          },
-                                      ]
-                                    : []),
-                                // Show server timezone for parity with the DOWN notification embed
-                                {
-                                    name: `Time (${heartbeatJSON["timezone"]})`,
-                                    value: heartbeatJSON["localDateTime"],
-                                },
-                                ...(heartbeatJSON["ping"] != null
-                                    ? [
-                                          {
-                                              name: "Ping",
-                                              value: heartbeatJSON["ping"] + " ms",
-                                          },
-                                      ]
-                                    : []),
-                            ],
+                            fields: embedFields,
                         },
                     ],
                 };

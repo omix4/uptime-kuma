@@ -1058,6 +1058,54 @@ let needSetup = false;
             }
         });
 
+        // Stremio Addons Search
+        socket.on("stremioSearchAddons", async (searchQuery, callback) => {
+            try {
+                checkLogin(socket);
+                
+                const axios = require("axios");
+                const url = new URL("https://stremio-addons.net/api/v0/addons");
+                
+                if (searchQuery) url.searchParams.set("search", searchQuery);
+                url.searchParams.set("limit", "20");
+                
+                const res = await axios.get(url.toString(), {
+                    headers: {
+                        Accept: "application/json",
+                        "User-Agent": "Uptime-Kuma-Stremio-Search/1.0"
+                    },
+                    timeout: 10000
+                });
+                
+                const addons = res.data.addons.map(addon => ({
+                    id: addon.uuid,
+                    name: addon.manifest.name,
+                    slug: addon.slug,
+                    description: addon.manifest.description,
+                    stars: addon.stars,
+                    manifestUrl: addon.manifestUrl,
+                    version: addon.manifest.version,
+                    logo: addon.manifest.logo || addon.manifest.icon,
+                    background: addon.manifest.background,
+                    createdAt: addon.createdAt,
+                    updatedAt: addon.updatedAt
+                }));
+                
+                callback({
+                    ok: true,
+                    data: {
+                        addons,
+                        pagination: res.data.pagination
+                    }
+                });
+            } catch (e) {
+                callback({
+                    ok: false,
+                    msg: e.message
+                });
+            }
+        });
+
         // Start or Resume the monitor
         socket.on("resumeMonitor", async (monitorID, callback) => {
             try {

@@ -93,6 +93,9 @@
                 </span>
                 <span v-if="monitor.type === 'radius'">Radius: {{ filterPassword(monitor.hostname) }}</span>
                 <span v-if="monitor.type === 'redis'">{{ filterPassword(monitor.databaseConnectionString) }}</span>
+                <span v-if="monitor.type === 'stremio'">
+                    Stremio Addon: <a :href="monitor.url" target="_blank" rel="noopener noreferrer">{{ monitor.url }}</a>
+                </span>
                 <span v-if="monitor.type === 'sqlserver'">
                     SQL Server: {{ filterPassword(monitor.databaseConnectionString) }}
                 </span>
@@ -188,6 +191,59 @@
                         ></prism-editor>
                     </div>
                 </transition>
+            </div>
+
+            <!-- Stremio Addon Status -->
+            <div v-if="monitor.type === 'stremio' && lastHeartBeat.response" class="shadow-box big-padding">
+                <h4 class="mb-3">Stremio Addon Status</h4>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header">🎬 Movie Probe</div>
+                            <div class="card-body">
+                                <div v-if="lastHeartBeat.response.movie">
+                                    <strong>{{ lastHeartBeat.response.movie.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ lastHeartBeat.response.movie.id }}</small>
+                                    <br>
+                                    <span :class="lastHeartBeat.response.movie.working ? 'text-success' : 'text-danger'">
+                                        {{ lastHeartBeat.response.movie.working ? '✓ Working' : '✗ Failed' }}
+                                    </span>
+                                    <span class="ms-2">({{ lastHeartBeat.response.movie.streams }} streams)</span>
+                                </div>
+                                <div v-else class="text-muted">No movie probe data</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header">📺 Series Probe</div>
+                            <div class="card-body">
+                                <div v-if="lastHeartBeat.response.series">
+                                    <strong>{{ lastHeartBeat.response.series.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ lastHeartBeat.response.series.id }}</small>
+                                    <br>
+                                    <span :class="lastHeartBeat.response.series.working ? 'text-success' : 'text-danger'">
+                                        {{ lastHeartBeat.response.series.working ? '✓ Working' : '✗ Failed' }}
+                                    </span>
+                                    <span class="ms-2">({{ lastHeartBeat.response.series.streams }} streams)</span>
+                                </div>
+                                <div v-else class="text-muted">No series probe data</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <strong>Timing:</strong>
+                    <span class="ms-2">Total: {{ lastHeartBeat.response.timing?.total }}ms</span>
+                    <span class="ms-2">Cinemeta: {{ lastHeartBeat.response.timing?.cinemeta }}ms</span>
+                    <span class="ms-2">Movie: {{ lastHeartBeat.response.timing?.movieQuery }}ms</span>
+                    <span class="ms-2">Series: {{ lastHeartBeat.response.timing?.seriesQuery }}ms</span>
+                </div>
             </div>
 
             <!-- Stats -->
