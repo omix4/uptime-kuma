@@ -348,12 +348,10 @@ class StremioAddonMonitor extends MonitorType {
                 results.msg = "✗ Not working - No streams returned from addon";
             }
 
-            // Set heartbeat response and save it
-            heartbeat.response = results;
+            // Set heartbeat response - store as JSON string directly (not compressed)
+            // This ensures the frontend can read it without decompression
+            heartbeat.response = JSON.stringify(results);
             heartbeat.ping = results.timing.total;
-            
-            // Save response data to database
-            await monitor.saveResponseData(heartbeat, results);
             
             log.debug("monitor", `[StremioAddon] Check complete: ${results.msg}`);
 
@@ -362,11 +360,8 @@ class StremioAddonMonitor extends MonitorType {
             results.msg = `Error: ${error.message}`;
             results.overall = DOWN;
             heartbeat.status = DOWN;
-            heartbeat.response = results;
+            heartbeat.response = JSON.stringify(results);
             heartbeat.ping = results.timing.total;
-            
-            // Save error response to database
-            await monitor.saveResponseData(heartbeat, results);
             
             throw error;
         }
