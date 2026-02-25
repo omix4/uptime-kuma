@@ -148,7 +148,7 @@
                         <span
                             class="badge"
                             :class="'bg-' + status.color"
-                            style="font-size: 30px; border-radius: 4px;"
+                            style="font-size: 30px"
                             data-testid="monitor-status"
                         >
                             {{ status.text }}
