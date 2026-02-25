@@ -199,45 +199,45 @@
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-header">🎬 Movie Probe</div>
-                            <div class="card-body">
+                        <div class="card" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
+                            <div class="card-header" :class="$root.theme === 'dark' ? 'bg-dark text-white border-dark' : ''">🎬 Movie Probe</div>
+                            <div class="card-body" :class="$root.theme === 'dark' ? 'bg-dark text-white' : ''">
                                 <div v-if="lastHeartBeat.response.movie">
                                     <strong>{{ lastHeartBeat.response.movie.name }}</strong>
                                     <br>
-                                    <small class="text-muted">{{ lastHeartBeat.response.movie.id }}</small>
+                                    <small :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">{{ lastHeartBeat.response.movie.id }}</small>
                                     <br>
                                     <span :class="lastHeartBeat.response.movie.working ? 'text-success' : 'text-danger'">
                                         {{ lastHeartBeat.response.movie.working ? '✓ Working' : '✗ Failed' }}
                                     </span>
                                     <span class="ms-2">({{ lastHeartBeat.response.movie.streams }} streams)</span>
                                 </div>
-                                <div v-else class="text-muted">No movie probe data</div>
+                                <div v-else :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">No movie probe data</div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-header">📺 Series Probe</div>
-                            <div class="card-body">
+                        <div class="card" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
+                            <div class="card-header" :class="$root.theme === 'dark' ? 'bg-dark text-white border-dark' : ''">📺 Series Probe</div>
+                            <div class="card-body" :class="$root.theme === 'dark' ? 'bg-dark text-white' : ''">
                                 <div v-if="lastHeartBeat.response.series">
                                     <strong>{{ lastHeartBeat.response.series.name }}</strong>
                                     <br>
-                                    <small class="text-muted">{{ lastHeartBeat.response.series.id }}</small>
+                                    <small :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">{{ lastHeartBeat.response.series.id }}</small>
                                     <br>
                                     <span :class="lastHeartBeat.response.series.working ? 'text-success' : 'text-danger'">
                                         {{ lastHeartBeat.response.series.working ? '✓ Working' : '✗ Failed' }}
                                     </span>
                                     <span class="ms-2">({{ lastHeartBeat.response.series.streams }} streams)</span>
                                 </div>
-                                <div v-else class="text-muted">No series probe data</div>
+                                <div v-else :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">No series probe data</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="mt-3">
+                <div class="mt-3" :class="$root.theme === 'dark' ? 'text-light' : ''">
                     <strong>Timing:</strong>
                     <span class="ms-2">Total: {{ lastHeartBeat.response.timing?.total }}ms</span>
                     <span class="ms-2">Cinemeta: {{ lastHeartBeat.response.timing?.cinemeta }}ms</span>
