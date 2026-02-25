@@ -194,7 +194,7 @@
             </div>
 
             <!-- Stremio Addon Status -->
-            <div v-if="monitor.type === 'stremio' && lastHeartBeat.response" class="shadow-box big-padding">
+            <div v-if="monitor.type === 'stremio' && stremioResponse" class="shadow-box big-padding">
                 <h4 class="mb-3">Stremio Addon Status</h4>
                 
                 <div class="row">
@@ -202,15 +202,15 @@
                         <div class="card" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
                             <div class="card-header" :class="$root.theme === 'dark' ? 'bg-dark text-white border-dark' : ''">🎬 Movie Probe</div>
                             <div class="card-body" :class="$root.theme === 'dark' ? 'bg-dark text-white' : ''">
-                                <div v-if="lastHeartBeat.response.movie">
-                                    <strong>{{ lastHeartBeat.response.movie.name }}</strong>
+                                <div v-if="stremioResponse.movie">
+                                    <strong>{{ stremioResponse.movie.name }}</strong>
                                     <br>
-                                    <small :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">{{ lastHeartBeat.response.movie.id }}</small>
+                                    <small :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">{{ stremioResponse.movie.id }}</small>
                                     <br>
-                                    <span :class="lastHeartBeat.response.movie.working ? 'text-success' : 'text-danger'">
-                                        {{ lastHeartBeat.response.movie.working ? '✓ Working' : '✗ Failed' }}
+                                    <span :class="stremioResponse.movie.working ? 'text-success' : 'text-danger'">
+                                        {{ stremioResponse.movie.working ? '✓ Working' : '✗ Failed' }}
                                     </span>
-                                    <span class="ms-2">({{ lastHeartBeat.response.movie.streams }} streams)</span>
+                                    <span class="ms-2">({{ stremioResponse.movie.streams }} streams)</span>
                                 </div>
                                 <div v-else :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">No movie probe data</div>
                             </div>
@@ -221,15 +221,15 @@
                         <div class="card" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
                             <div class="card-header" :class="$root.theme === 'dark' ? 'bg-dark text-white border-dark' : ''">📺 Series Probe</div>
                             <div class="card-body" :class="$root.theme === 'dark' ? 'bg-dark text-white' : ''">
-                                <div v-if="lastHeartBeat.response.series">
-                                    <strong>{{ lastHeartBeat.response.series.name }}</strong>
+                                <div v-if="stremioResponse.series">
+                                    <strong>{{ stremioResponse.series.name }}</strong>
                                     <br>
-                                    <small :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">{{ lastHeartBeat.response.series.id }}</small>
+                                    <small :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">{{ stremioResponse.series.id }}</small>
                                     <br>
-                                    <span :class="lastHeartBeat.response.series.working ? 'text-success' : 'text-danger'">
-                                        {{ lastHeartBeat.response.series.working ? '✓ Working' : '✗ Failed' }}
+                                    <span :class="stremioResponse.series.working ? 'text-success' : 'text-danger'">
+                                        {{ stremioResponse.series.working ? '✓ Working' : '✗ Failed' }}
                                     </span>
-                                    <span class="ms-2">({{ lastHeartBeat.response.series.streams }} streams)</span>
+                                    <span class="ms-2">({{ stremioResponse.series.streams }} streams)</span>
                                 </div>
                                 <div v-else :class="$root.theme === 'dark' ? 'text-light' : 'text-muted'">No series probe data</div>
                             </div>
@@ -239,10 +239,10 @@
                 
                 <div class="mt-3" :class="$root.theme === 'dark' ? 'text-light' : ''">
                     <strong>Timing:</strong>
-                    <span class="ms-2">Total: {{ lastHeartBeat.response.timing?.total }}ms</span>
-                    <span class="ms-2">Cinemeta: {{ lastHeartBeat.response.timing?.cinemeta }}ms</span>
-                    <span class="ms-2">Movie: {{ lastHeartBeat.response.timing?.movieQuery }}ms</span>
-                    <span class="ms-2">Series: {{ lastHeartBeat.response.timing?.seriesQuery }}ms</span>
+                    <span class="ms-2">Total: {{ stremioResponse.timing?.total }}ms</span>
+                    <span class="ms-2">Cinemeta: {{ stremioResponse.timing?.cinemeta }}ms</span>
+                    <span class="ms-2">Movie: {{ stremioResponse.timing?.movieQuery }}ms</span>
+                    <span class="ms-2">Series: {{ stremioResponse.timing?.seriesQuery }}ms</span>
                 </div>
             </div>
 
@@ -580,6 +580,24 @@ export default {
             return {
                 status: -1,
             };
+        },
+
+        /**
+         * Get parsed response for Stremio monitors (response is stored as JSON string)
+         */
+        stremioResponse() {
+            if (!this.lastHeartBeat.response) {
+                return null;
+            }
+            // Response may be a JSON string or already an object
+            if (typeof this.lastHeartBeat.response === 'string') {
+                try {
+                    return JSON.parse(this.lastHeartBeat.response);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return this.lastHeartBeat.response;
         },
 
         ping() {

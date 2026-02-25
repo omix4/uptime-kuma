@@ -15,13 +15,13 @@
                     </div>
                     <div class="tooltip-time">{{ timeText }}</div>
                     <div v-if="content?.msg" class="tooltip-message">{{ content.msg }}</div>
-                    <!-- Stremio addon specific info -->
-                    <div v-if="content?.response" class="tooltip-stremio">
-                        <div v-if="content.response.movie" class="stremio-movie">
-                            🎬 {{ content.response.movie.streams || 0 }} streams
+                    <!-- Stremio addon specific info - parse response if it's a string -->
+                    <div v-if="parsedResponse" class="tooltip-stremio">
+                        <div v-if="parsedResponse.movie" class="stremio-movie">
+                            🎬 {{ parsedResponse.movie.streams || 0 }} streams
                         </div>
-                        <div v-if="content.response.series" class="stremio-series">
-                            📺 {{ content.response.series.streams || 0 }} streams
+                        <div v-if="parsedResponse.series" class="stremio-series">
+                            📺 {{ parsedResponse.series.streams || 0 }} streams
                         </div>
                     </div>
                 </slot>
@@ -115,6 +115,23 @@ export default {
                 return "";
             }
             return this.$root.datetime(this.content.time);
+        },
+
+        /**
+         * Parse response if it's a JSON string (for Stremio monitors)
+         */
+        parsedResponse() {
+            if (!this.content || !this.content.response) {
+                return null;
+            }
+            if (typeof this.content.response === 'string') {
+                try {
+                    return JSON.parse(this.content.response);
+                } catch (e) {
+                    return null;
+                }
+            }
+            return this.content.response;
         },
     },
 };
