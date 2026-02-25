@@ -15,6 +15,15 @@
                     </div>
                     <div class="tooltip-time">{{ timeText }}</div>
                     <div v-if="content?.msg" class="tooltip-message">{{ content.msg }}</div>
+                    <!-- Stremio addon specific info -->
+                    <div v-if="content?.response" class="tooltip-stremio">
+                        <div v-if="content.response.movie" class="stremio-movie">
+                            🎬 {{ content.response.movie.streams || 0 }} streams
+                        </div>
+                        <div v-if="content.response.series" class="stremio-series">
+                            📺 {{ content.response.series.streams || 0 }} streams
+                        </div>
+                    </div>
                 </slot>
             </div>
             <div class="tooltip-arrow" :class="{ 'arrow-above': position === 'above' }"></div>
@@ -182,6 +191,14 @@ export default {
             margin-top: 4px;
             padding-top: 4px;
             border-top: 1px solid rgba(75, 85, 99, 0.3);
+        }
+
+        .tooltip-stremio {
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid rgba(75, 85, 99, 0.3);
+            font-size: 11px;
+            color: #9ca3af;
         }
     }
 
