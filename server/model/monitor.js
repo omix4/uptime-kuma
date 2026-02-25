@@ -811,10 +811,6 @@ class Monitor extends BeanModel {
                     } else {
                         throw new Error("Server not found on Steam");
                     }
-                } else if (this.type === "stremio") {
-                    const { StremioAddonMonitor } = require("../monitor-types/stremio");
-                    const stremioMonitor = new StremioAddonMonitor();
-                    await stremioMonitor.check(this, bean, server);
                 } else if (this.type === "docker") {
                     log.debug("monitor", `[${this.name}] Prepare Options for Axios`);
 
