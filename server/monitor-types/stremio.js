@@ -5,6 +5,7 @@
 
 const axios = require("axios");
 const { UP, DOWN, log } = require("../../src/util");
+const { MonitorType } = require("./monitor-type");
 
 // Cinemeta base URLs for catalog fetching
 const CINEMETA_MOVIE_URL = "https://v3-cinemeta.strem.io/catalog/movie/top.json";
@@ -25,7 +26,7 @@ async function timedExecution(fn) {
     }
 }
 
-class StremioAddonMonitor {
+class StremioAddonMonitor extends MonitorType {
     static type = "stremio";
     static name = "Stremio Addon"; static defaultPort = 80;
 
