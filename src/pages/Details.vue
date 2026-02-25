@@ -199,7 +199,7 @@
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <div class="card" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
+                        <div class="card" style="border-radius: 0;" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
                             <div class="card-header" :class="$root.theme === 'dark' ? 'bg-dark text-white border-dark' : ''">🎬 Movie Probe</div>
                             <div class="card-body" :class="$root.theme === 'dark' ? 'bg-dark text-white' : ''">
                                 <div v-if="stremioResponse.movie">
@@ -218,7 +218,7 @@
                     </div>
                     
                     <div class="col-md-6 mb-3">
-                        <div class="card" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
+                        <div class="card" style="border-radius: 0;" :class="$root.theme === 'dark' ? 'bg-dark border-dark' : ''">
                             <div class="card-header" :class="$root.theme === 'dark' ? 'bg-dark text-white border-dark' : ''">📺 Series Probe</div>
                             <div class="card-body" :class="$root.theme === 'dark' ? 'bg-dark text-white' : ''">
                                 <div v-if="stremioResponse.series">
