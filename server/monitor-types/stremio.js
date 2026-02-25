@@ -181,16 +181,17 @@ class StremioAddonMonitor extends MonitorType {
             results.timing.movieQuery = movieQueryResult.duration;
 
             if (movieQueryResult.success && movieQueryResult.data) {
-                const qualityInfo = this.analyzeStreamQuality(movieQueryResult.data.streams);
+                const streams = Array.isArray(movieQueryResult.data.streams) ? movieQueryResult.data.streams : [];
+                const qualityInfo = this.analyzeStreamQuality(streams);
                 results.movie = {
                     id: movieId,
                     name: items.movie.name,
                     poster: items.movie.poster,
                     year: items.movie.year,
-                    streams: movieQueryResult.data.streams?.length || 0,
-                    streamDetails: movieQueryResult.data.streams || [],
+                    streams: streams.length,
+                    streamDetails: streams.slice(0, 5),
                     quality: qualityInfo,
-                    working: (movieQueryResult.data.streams?.length || 0) > 0,
+                    working: streams.length > 0,
                     responseTime: movieQueryResult.duration,
                     error: null
                 };
@@ -224,7 +225,8 @@ class StremioAddonMonitor extends MonitorType {
                     results.timing.seriesQuery = episodeQueryResult.duration;
 
                     if (episodeQueryResult.success && episodeQueryResult.data) {
-                        const qualityInfo = this.analyzeStreamQuality(episodeQueryResult.data.streams);
+                        const streams = Array.isArray(episodeQueryResult.data.streams) ? episodeQueryResult.data.streams : [];
+                        const qualityInfo = this.analyzeStreamQuality(streams);
                         results.series = {
                             id: episode.id,
                             seriesId: seriesId,
@@ -233,10 +235,10 @@ class StremioAddonMonitor extends MonitorType {
                             episode: episode.title,
                             season: episode.season,
                             episodeNum: episode.episode,
-                            streams: episodeQueryResult.data.streams?.length || 0,
-                            streamDetails: episodeQueryResult.data.streams || [],
+                            streams: streams.length,
+                            streamDetails: streams.slice(0, 5),
                             quality: qualityInfo,
-                            working: (episodeQueryResult.data.streams?.length || 0) > 0,
+                            working: streams.length > 0,
                             responseTime: episodeQueryResult.duration,
                             error: null
                         };
@@ -263,16 +265,17 @@ class StremioAddonMonitor extends MonitorType {
                     results.timing.seriesQuery = seriesQueryResult.duration;
 
                     if (seriesQueryResult.success && seriesQueryResult.data) {
-                        const qualityInfo = this.analyzeStreamQuality(seriesQueryResult.data.streams);
+                        const streams = Array.isArray(seriesQueryResult.data.streams) ? seriesQueryResult.data.streams : [];
+                        const qualityInfo = this.analyzeStreamQuality(streams);
                         results.series = {
                             id: seriesId,
                             seriesId: seriesId,
                             name: items.series.name,
                             poster: items.series.poster,
-                            streams: seriesQueryResult.data.streams?.length || 0,
-                            streamDetails: seriesQueryResult.data.streams || [],
+                            streams: streams.length,
+                            streamDetails: streams.slice(0, 5),
                             quality: qualityInfo,
-                            working: (seriesQueryResult.data.streams?.length || 0) > 0,
+                            working: streams.length > 0,
                             responseTime: seriesQueryResult.duration,
                             error: null
                         };
@@ -297,16 +300,17 @@ class StremioAddonMonitor extends MonitorType {
                 results.timing.seriesQuery = seriesQueryResult.duration;
 
                 if (seriesQueryResult.success && seriesQueryResult.data) {
-                    const qualityInfo = this.analyzeStreamQuality(seriesQueryResult.data.streams);
+                    const streams = Array.isArray(seriesQueryResult.data.streams) ? seriesQueryResult.data.streams : [];
+                    const qualityInfo = this.analyzeStreamQuality(streams);
                     results.series = {
                         id: seriesId,
                         seriesId: seriesId,
                         name: items.series.name,
                         poster: items.series.poster,
-                        streams: seriesQueryResult.data.streams?.length || 0,
-                        streamDetails: seriesQueryResult.data.streams || [],
+                        streams: streams.length,
+                        streamDetails: streams.slice(0, 5),
                         quality: qualityInfo,
-                        working: (seriesQueryResult.data.streams?.length || 0) > 0,
+                        working: streams.length > 0,
                         responseTime: seriesQueryResult.duration,
                         error: null
                     };
